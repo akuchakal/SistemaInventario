@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing.Constraints;
+using Rotativa.AspNetCore;
 using SistemaInventario.AccesoDatos.Repositorio.IRepositorio;
 using SistemaInventario.Modelos;
 using SistemaInventario.Modelos.ViewModels;
@@ -211,13 +213,34 @@ namespace SistemaInventario.Areas.Inventario.Controllers
             kardexInventarioVM.Producto = await _unidadTrabajo.Producto.Obtener(productoId);
             kardexInventarioVM.FechaInicio = DateTime.Parse(fechaInicioId);
             kardexInventarioVM.FechaFinal = DateTime.Parse(fechaFinalId).AddHours(23).AddMinutes(59);
-            kardexInventarioVM.KardeInventarioLista = await _unidadTrabajo.KardexInventario.ObtenerTodos(
+            kardexInventarioVM.KardexInventarioLista = await _unidadTrabajo.KardexInventario.ObtenerTodos(
                 k => k.BodegaProducto.ProductoId == productoId &&
                 (k.FechaRegistro >= kardexInventarioVM.FechaInicio &&
                 k.FechaRegistro <= kardexInventarioVM.FechaFinal),
                 incluirPropiedades: "BodegaProducto,BodegaProducto.Producto,BodegaProducto.Bodega",
                 orderBy: o => o.OrderBy(o => o.FechaRegistro));
             return View(kardexInventarioVM);
+        }
+
+        public async Task<IActionResult> ImprimirKardex(string fechaInicio, string fechaFinal, int productoId)
+        {
+            var kardexInventarioVM = new KardexInventarioVM();
+            kardexInventarioVM.Producto = new Producto();
+            kardexInventarioVM.Producto = await _unidadTrabajo.Producto.Obtener(productoId);
+            kardexInventarioVM.FechaInicio = DateTime.Parse(fechaInicio);
+            kardexInventarioVM.FechaFinal = DateTime.Parse(fechaFinal);
+            kardexInventarioVM.KardexInventarioLista = await _unidadTrabajo.KardexInventario.ObtenerTodos(
+                k => k.BodegaProducto.ProductoId == productoId &&
+                (k.FechaRegistro >= kardexInventarioVM.FechaInicio &&
+                k.FechaRegistro <= kardexInventarioVM.FechaFinal),
+                incluirPropiedades: "BodegaProducto,BodegaProducto.Producto,BodegaProducto.Bodega",
+                orderBy: o => o.OrderBy(o => o.FechaRegistro));
+            return new ViewAsPdf("ImprimirKardex", kardexInventarioVM) {
+                FileName = "KardexProducto.pdf",
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                CustomSwitches = "--page--offset 0 --footer-center [page] --footer-font-size 12"
+            };
         }
 
         #region API

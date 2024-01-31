@@ -30,13 +30,21 @@
         </div>
     </div>
     <div class="row mb-2">
-        <div class="form-group col-md-3 mt-2">
+        <div class="form-group col-md-6 mt-2">
             <a asp-action="KardexProducto" class="btn btn-primary">Nueva Consulta</a>
+            <a 
+                asp-action="ImprimirKardex" 
+                asp-route-fechaInicio="@Model.FechaInicio" 
+                asp-route-fechaFinal="@Model.FechaFinal" 
+                asp-route-productoId="@Model.Producto.Id" 
+                class="btn btn-primary">
+                <i class="bi bi-printer"></i> Imprimir
+            </a>
             <a asp-action="Index" class="btn btn-primary">Salir</a>
         </div>
     </div>
     <table class="table table-responsive table-hover table-bordered">
-        @foreach (var bodega in Model.KardeInventarioLista.GroupBy(x => x.BodegaProducto.Bodega.Nombre))
+        @foreach (var bodega in Model.KardexInventarioLista.GroupBy(x => x.BodegaProducto.Bodega.Nombre))
         {
             <thead class="table-secondary">
                 <tr>
@@ -55,7 +63,7 @@
                     <th class="text-center">Total</th>
                 </tr>
             </thead>
-            @foreach (var datos in Model.KardeInventarioLista.Where(d => d.BodegaProducto.Bodega.Nombre == bodega.Key))
+            @foreach (var datos in Model.KardexInventarioLista.Where(d => d.BodegaProducto.Bodega.Nombre == bodega.Key))
             {
                 <tr>
                     <td class="text-center">@datos.FechaRegistro.ToShortDateString()</td>
@@ -85,7 +93,7 @@
             }
         }
     </table>
-    @if (Model.KardeInventarioLista.Count() == 0)
+    @if (Model.KardexInventarioLista.Count() == 0)
     {
         <div class="col-12 border-bottom p-0">
             <h3 class="text-primary text-center">No hay datos para mostrar</h3>
